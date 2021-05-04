@@ -21,6 +21,7 @@ requirements:
     - llvm-openmp  # [osx]
     - libgomp      # [linux]
   host:
+    - pyquicksetup
     - cython
     - jinja2
     - numpy
