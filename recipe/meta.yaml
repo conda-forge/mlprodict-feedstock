@@ -1,5 +1,5 @@
 {% set name = "mlprodict" %}
-{% set version = "0.5.1360" %}
+{% set version = "0.5.1447" %}
 
 
 package:
@@ -8,10 +8,10 @@ package:
 
 source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/mlprodict-{{ version }}.tar.gz
-  sha256: fc93e67ede2367c20df21a029845755c9bf7a680030e7b1304d4e85dfa33e1a0
+  sha256: ffba0716a2e6bac60fa9ea83efb36cbb623334aca115bfd35fce29854dcd3f25
 
 build:
-  number: 2
+  number: 0
   script: {{ PYTHON }} -m pip install . -vv
 
 requirements:
@@ -21,6 +21,7 @@ requirements:
     - llvm-openmp  # [osx]
     - libgomp      # [linux]
   host:
+    - pyquicksetup
     - cython
     - jinja2
     - numpy
