@@ -1,5 +1,5 @@
 {% set name = "mlprodict" %}
-{% set version = "0.7.1602" %}
+{% set version = "0.7" %}
 
 
 package:
@@ -7,8 +7,8 @@ package:
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/mlprodict-{{ version }}.tar.gz
-  sha256: f812c2a750e48fd9163caa664af9ba7c19ea2cfd76a0442aa61fde358da0069e
+  url: https://github.com/sdpython/{{ name }}/archive/refs/tags/{{ version }}.tar.gz
+  sha256: 64f5991f2bf9b3b8d97c4ae97ed0529e1895867acb4b3d42e9fbd8da690b24c4
 
 build:
   number: 0
