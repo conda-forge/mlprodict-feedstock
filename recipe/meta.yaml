@@ -1,40 +1,33 @@
 {% set name = "mlprodict" %}
-{% set version = "0.8" %}
-
+{% set version = "0.8.1826" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://github.com/sdpython/{{ name }}/archive/refs/tags/{{ version }}.tar.gz
-  sha256: 81654c7533a647d39ab68f775a1d2516ab8b92a6853af4d6c9d620cb11730125
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/mlprodict-{{ version }}.tar.gz
+  sha256: 00e4d21d6502b4e3642d825e275b947d162615cc7137fec68908c7c64404b503
 
 build:
-  number: 0
   script: {{ PYTHON }} -m pip install . -vv
+  number: 0
 
 requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    - llvm-openmp  # [osx]
-    - libgomp      # [linux]
   host:
-    - pyquicksetup
     - cython
-    - jinja2
     - numpy
-    - onnx >=1.7
     - pip
     - pybind11
+    - pyquicksetup
     - python
-    - scikit-learn >=0.23
   run:
     - cython
     - jinja2
-    - numpy >=1.17
-    - onnx >=1.7
+    - onnx >=1.7.0
     - pybind11
     - python
     - scipy >=1.0.0
