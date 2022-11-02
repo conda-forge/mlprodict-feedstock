@@ -9,9 +9,11 @@ package:
 source:
   url: https://github.com/sdpython/{{ name }}/archive/refs/tags/{{ version }}.tar.gz
   sha256: 81654c7533a647d39ab68f775a1d2516ab8b92a6853af4d6c9d620cb11730125
+  patches:
+    - 0001-Replace-ssize_t-with-std-ptrdiff_t.patch
 
 build:
-  number: 0
+  number: 1
   script: {{ PYTHON }} -m pip install . -vv
 
 requirements:
@@ -22,6 +24,7 @@ requirements:
     - libgomp      # [linux]
   host:
     - pyquicksetup
+    - setuptools
     - cython
     - jinja2
     - numpy

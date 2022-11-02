@@ -1,0 +1,278 @@
+From ce6a3dc7a8f6c05919333d304df452daa3faba51 Mon Sep 17 00:00:00 2001
+From: "Uwe L. Korn" <uwe.korn@quantco.com>
+Date: Mon, 31 Oct 2022 22:46:34 +0100
+Subject: [PATCH] Replace ssize_t with std::ptrdiff_t
+
+---
+ mlprodict/onnxrt/ops_cpu/_op_onnx_numpy.cpp   | 32 +++++++++----------
+ .../ops_cpu/op_tree_ensemble_classifier_.cpp  |  8 ++---
+ .../ops_cpu/op_tree_ensemble_common_p_.hpp    | 12 +++----
+ .../ops_cpu/op_tree_ensemble_regressor_.cpp   | 20 ++++++------
+ mlprodict/testing/experimental_c_einsum.hpp   |  2 +-
+ mlprodict/testing/experimental_c_reduce.hpp   |  2 +-
+ 6 files changed, 38 insertions(+), 38 deletions(-)
+
+diff --git a/mlprodict/onnxrt/ops_cpu/_op_onnx_numpy.cpp b/mlprodict/onnxrt/ops_cpu/_op_onnx_numpy.cpp
+index 2a99ac8..53a16d8 100644
+--- a/mlprodict/onnxrt/ops_cpu/_op_onnx_numpy.cpp
++++ b/mlprodict/onnxrt/ops_cpu/_op_onnx_numpy.cpp
+@@ -41,7 +41,7 @@ py::array_t<NTYPE> array_feature_extractor(py::array_t<NTYPE, py::array::c_style
+     std::vector<int64_t> x_shape, y_shape;
+ 
+     arrayshape2vector(x_shape, data);
+-    ssize_t x_num_dims = x_shape.size();
++    std::ptrdiff_t x_num_dims = x_shape.size();
+                                                
+     const NTYPE* x_data = data.data();
+     const int64_t* indices = indices_.data();
+@@ -50,18 +50,18 @@ py::array_t<NTYPE> array_feature_extractor(py::array_t<NTYPE, py::array::c_style
+         throw std::invalid_argument("data cannot be empty.");
+ 
+     arrayshape2vector(y_shape, indices_);
+-    ssize_t stride = x_shape[x_num_dims - 1];
+-    ssize_t num_indices = flattened_dimension(y_shape);
++    std::ptrdiff_t stride = x_shape[x_num_dims - 1];
++    std::ptrdiff_t num_indices = flattened_dimension(y_shape);
+ 
+     if (num_indices == 0)
+         throw std::invalid_argument("indices cannot be empty.");
+ 
+-    for (ssize_t i = 0; i < num_indices; ++i)
++    for (std::ptrdiff_t i = 0; i < num_indices; ++i)
+         if (indices[i] >= (int64_t)stride)
+             throw std::invalid_argument(
+                 "Invalid Y argument: index is out of range");
+ 
+-    std::vector<ssize_t> z_shape;
++    std::vector<std::ptrdiff_t> z_shape;
+     if (x_num_dims == 1) {
+         z_shape.push_back(1);
+         z_shape.push_back(num_indices);
+@@ -69,7 +69,7 @@ py::array_t<NTYPE> array_feature_extractor(py::array_t<NTYPE, py::array::c_style
+     else {
+         z_shape.resize(x_shape.size());
+         for(size_t i = 0; i < x_shape.size(); ++i)
+-            z_shape[i] = (ssize_t)x_shape[i];
++            z_shape[i] = (std::ptrdiff_t)x_shape[i];
+         z_shape[x_num_dims - 1] = num_indices;
+     }
+ 
+@@ -79,12 +79,12 @@ py::array_t<NTYPE> array_feature_extractor(py::array_t<NTYPE, py::array::c_style
+     int64_t x_size_until_last_dim = flattened_dimension(x_shape, x_num_dims - 1);
+     const int64_t * indices_end = indices + num_indices;
+     const int64_t * iti;
+-    for (ssize_t i = 0; i < x_size_until_last_dim; ++i) {
++    for (std::ptrdiff_t i = 0; i < x_size_until_last_dim; ++i) {
+         for (iti = indices; iti != indices_end; ++iti)
+             *z_data++ = x_data[*iti];
+         x_data += stride;
+     }
+-    std::vector<ssize_t> strides;
++    std::vector<std::ptrdiff_t> strides;
+     shape2strides(z_shape, strides, (NTYPE)0);
+     
+     return py::array_t<NTYPE>(
+@@ -235,7 +235,7 @@ void _topk_element(const typename HeapCmp::DataType* values, size_t k, size_t n,
+ 
+ template <class HeapCmp>
+ void _topk_element_ptr(int64_t* pos, size_t k, const typename HeapCmp::DataType* values,
+-                       const std::vector<int64_t>& shape, bool sorted, ssize_t th_parallel) {
++                       const std::vector<int64_t>& shape, bool sorted, std::ptrdiff_t th_parallel) {
+     HeapCmp heap_cmp;
+     if (shape.size() == 1) {
+         _topk_element(values, k, shape[0], pos, sorted, heap_cmp);
+@@ -267,7 +267,7 @@ void _topk_element_ptr(int64_t* pos, size_t k, const typename HeapCmp::DataType*
+ template<class HeapCmp>
+ py::array_t<int64_t> topk_element(
+         py::array_t<typename HeapCmp::DataType, py::array::c_style | py::array::forcecast> values,
+-        ssize_t k, bool sorted, ssize_t th_para) {
++        std::ptrdiff_t k, bool sorted, std::ptrdiff_t th_para) {
+ 
+     if (k == 0) {
+         return py::array_t<int64_t>();
+@@ -331,42 +331,42 @@ py::array_t<NTYPE> topk_element_fetch(
+ 
+ py::array_t<int64_t> topk_element_min_int64(
+         py::array_t<int64_t, py::array::c_style | py::array::forcecast> values,
+-        ssize_t k, bool sorted, ssize_t th_para) {
++        std::ptrdiff_t k, bool sorted, std::ptrdiff_t th_para) {
+     return topk_element<HeapMin<int64_t>>(values, k, sorted, th_para);
+ }
+ 
+ 
+ py::array_t<int64_t> topk_element_min_float(
+         py::array_t<float, py::array::c_style | py::array::forcecast> values,
+-        ssize_t k, bool sorted, ssize_t th_para) {
++        std::ptrdiff_t k, bool sorted, std::ptrdiff_t th_para) {
+     return topk_element<HeapMin<float>>(values, k, sorted, th_para);
+ }
+ 
+ 
+ py::array_t<int64_t> topk_element_min_double(
+         py::array_t<double, py::array::c_style | py::array::forcecast> values,
+-        ssize_t k, bool sorted, ssize_t th_para) {
++        std::ptrdiff_t k, bool sorted, std::ptrdiff_t th_para) {
+     return topk_element<HeapMin<double>>(values, k, sorted, th_para);
+ }
+ 
+ 
+ py::array_t<int64_t> topk_element_max_int64(
+         py::array_t<int64_t, py::array::c_style | py::array::forcecast> values,
+-        ssize_t k, bool sorted, ssize_t th_para) {
++        std::ptrdiff_t k, bool sorted, std::ptrdiff_t th_para) {
+     return topk_element<HeapMax<int64_t>>(values, k, sorted, th_para);
+ }
+ 
+ 
+ py::array_t<int64_t> topk_element_max_float(
+         py::array_t<float, py::array::c_style | py::array::forcecast> values,
+-        ssize_t k, bool sorted, ssize_t th_para) {
++        std::ptrdiff_t k, bool sorted, std::ptrdiff_t th_para) {
+     return topk_element<HeapMax<float>>(values, k, sorted, th_para);
+ }
+ 
+ 
+ py::array_t<int64_t> topk_element_max_double(
+         py::array_t<double, py::array::c_style | py::array::forcecast> values,
+-        ssize_t k, bool sorted, ssize_t th_para) {
++        std::ptrdiff_t k, bool sorted, std::ptrdiff_t th_para) {
+     return topk_element<HeapMax<double>>(values, k, sorted, th_para);
+ }
+ 
+diff --git a/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_classifier_.cpp b/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_classifier_.cpp
+index d42e40f..e6abd9e 100644
+--- a/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_classifier_.cpp
++++ b/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_classifier_.cpp
+@@ -707,8 +707,8 @@ in :epkg:`onnxruntime`. Supports float only.)pbdoc");
+                 sizeof(int),
+                 py::format_descriptor<int>::format(),
+                 1,
+-                { (ssize_t)i_nodes_modes.size() },  /* shape of the matrix       */
+-                { (ssize_t)sizeof(int) }            /* strides for each axis     */
++                { (std::ptrdiff_t)i_nodes_modes.size() },  /* shape of the matrix       */
++                { (std::ptrdiff_t)sizeof(int) }            /* strides for each axis     */
+             ));
+     });    
+     clf.def_readonly("nodes_truenodeids_", &RuntimeTreeEnsembleClassifierFloat::nodes_truenodeids_, "See :ref:`lpyort-TreeEnsembleClassifier`.");
+@@ -759,8 +759,8 @@ in :epkg:`onnxruntime`. Supports double only.)pbdoc");
+                 sizeof(int),
+                 py::format_descriptor<int>::format(),
+                 1,
+-                { (ssize_t)i_nodes_modes.size() },  /* shape of the matrix       */
+-                { (ssize_t)sizeof(int) }            /* strides for each axis     */
++                { (std::ptrdiff_t)i_nodes_modes.size() },  /* shape of the matrix       */
++                { (std::ptrdiff_t)sizeof(int) }            /* strides for each axis     */
+             ));
+     });    
+     cld.def_readonly("nodes_truenodeids_", &RuntimeTreeEnsembleClassifierDouble::nodes_truenodeids_, "See :ref:`lpyort-TreeEnsembleClassifier`.");
+diff --git a/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_common_p_.hpp b/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_common_p_.hpp
+index 93ff7d6..3652b95 100644
+--- a/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_common_p_.hpp
++++ b/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_common_p_.hpp
+@@ -1248,9 +1248,9 @@ py::array_t<int> RuntimeTreeEnsembleCommonP<NTYPE>::debug_threshold(
+     for(auto it = nodes_; it != nodes_end; ++it)
+         for(pv=x_data; pv != end; ++pv, ++itb)
+             *itb = *pv <= it->value ? 1 : 0;
+-    std::vector<ssize_t> shape = { n_nodes_, values.size() };
+-    std::vector<ssize_t> strides = { (ssize_t)(values.size()*sizeof(int)),
+-                                     (ssize_t)sizeof(int) };
++    std::vector<std::ptrdiff_t> shape = { n_nodes_, values.size() };
++    std::vector<std::ptrdiff_t> strides = { (std::ptrdiff_t)(values.size()*sizeof(int)),
++                                     (std::ptrdiff_t)sizeof(int) };
+     return py::array_t<NTYPE>(
+         py::buffer_info(
+             &result[0],
+@@ -1294,9 +1294,9 @@ py::array_t<NTYPE> RuntimeTreeEnsembleCommonP<NTYPE>::compute_tree_outputs_agg(
+         }
+     }
+ 
+-    std::vector<ssize_t> shape = { (ssize_t)N, (ssize_t)roots_.size() };
+-    std::vector<ssize_t> strides = { (ssize_t)(roots_.size()*sizeof(NTYPE)),
+-                                     (ssize_t)sizeof(NTYPE) };
++    std::vector<std::ptrdiff_t> shape = { (std::ptrdiff_t)N, (std::ptrdiff_t)roots_.size() };
++    std::vector<std::ptrdiff_t> strides = { (std::ptrdiff_t)(roots_.size()*sizeof(NTYPE)),
++                                     (std::ptrdiff_t)sizeof(NTYPE) };
+     return py::array_t<NTYPE>(
+         py::buffer_info(
+             &result[0],
+diff --git a/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_regressor_.cpp b/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_regressor_.cpp
+index 26bc954..d37e6e0 100644
+--- a/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_regressor_.cpp
++++ b/mlprodict/onnxrt/ops_cpu/op_tree_ensemble_regressor_.cpp
+@@ -673,9 +673,9 @@ py::array_t<int> RuntimeTreeEnsembleRegressor<NTYPE>::debug_threshold(py::array_
+     for(auto it = nodes_values_.begin(); it != nodes_values_.end(); ++it)
+         for(pv=x_data; pv != end; ++pv, ++itb)
+             *itb = *pv <= *it ? 1 : 0;
+-    std::vector<ssize_t> shape = { (ssize_t)nodes_values_.size(), values.size() };
+-    std::vector<ssize_t> strides = { (ssize_t)(values.size()*sizeof(int)),
+-                                     (ssize_t)sizeof(int) };
++    std::vector<std::ptrdiff_t> shape = { (std::ptrdiff_t)nodes_values_.size(), values.size() };
++    std::vector<std::ptrdiff_t> strides = { (std::ptrdiff_t)(values.size()*sizeof(int)),
++                                     (std::ptrdiff_t)sizeof(int) };
+     return py::array_t<NTYPE>(
+         py::buffer_info(
+             &result[0],
+@@ -715,9 +715,9 @@ py::array_t<NTYPE> RuntimeTreeEnsembleRegressor<NTYPE>::compute_tree_outputs(py:
+         }
+     }
+     
+-    std::vector<ssize_t> shape = { (ssize_t)N, (ssize_t)roots_.size() };
+-    std::vector<ssize_t> strides = { (ssize_t)(roots_.size()*sizeof(NTYPE)),
+-                                     (ssize_t)sizeof(NTYPE) };
++    std::vector<std::ptrdiff_t> shape = { (std::ptrdiff_t)N, (std::ptrdiff_t)roots_.size() };
++    std::vector<std::ptrdiff_t> strides = { (std::ptrdiff_t)(roots_.size()*sizeof(NTYPE)),
++                                     (std::ptrdiff_t)sizeof(NTYPE) };
+     return py::array_t<NTYPE>(
+         py::buffer_info(
+             &result[0],
+@@ -789,8 +789,8 @@ in :epkg:`onnxruntime`. Supports float only.)pbdoc");
+                 sizeof(int),
+                 py::format_descriptor<int>::format(),
+                 1,
+-                { (ssize_t)i_nodes_modes.size() },  /* shape of the matrix       */
+-                { (ssize_t)sizeof(int) }            /* strides for each axis     */
++                { (std::ptrdiff_t)i_nodes_modes.size() },  /* shape of the matrix       */
++                { (std::ptrdiff_t)sizeof(int) }            /* strides for each axis     */
+             ));
+     });    
+     clf.def_readonly("nodes_truenodeids_", &RuntimeTreeEnsembleRegressorFloat::nodes_truenodeids_, "See :ref:`lpyort-TreeEnsembleRegressor`.");
+@@ -845,8 +845,8 @@ in :epkg:`onnxruntime`. Supports double only.)pbdoc");
+                 sizeof(int),
+                 py::format_descriptor<int>::format(),
+                 1,
+-                { (ssize_t)i_nodes_modes.size() },  /* shape of the matrix       */
+-                { (ssize_t)sizeof(int) }            /* strides for each axis     */
++                { (std::ptrdiff_t)i_nodes_modes.size() },  /* shape of the matrix       */
++                { (std::ptrdiff_t)sizeof(int) }            /* strides for each axis     */
+             ));
+     });    
+     cld.def_readonly("nodes_truenodeids_", &RuntimeTreeEnsembleRegressorDouble::nodes_truenodeids_, "See :ref:`lpyort-TreeEnsembleRegressorDouble`.");
+diff --git a/mlprodict/testing/experimental_c_einsum.hpp b/mlprodict/testing/experimental_c_einsum.hpp
+index e2950d7..ca70e17 100644
+--- a/mlprodict/testing/experimental_c_einsum.hpp
++++ b/mlprodict/testing/experimental_c_einsum.hpp
+@@ -369,7 +369,7 @@ py::array_t<NTYPE> custom_einsum(
+ #endif
+ 
+     std::vector<int64_t> z_shape;
+-    std::vector<ssize_t> strides;
++    std::vector<std::ptrdiff_t> strides;
+ 
+     mapshape2shape(shape, z_shape);
+     shape2strides(z_shape, strides, (NTYPE)0);
+diff --git a/mlprodict/testing/experimental_c_reduce.hpp b/mlprodict/testing/experimental_c_reduce.hpp
+index 0e3050e..53db538 100644
+--- a/mlprodict/testing/experimental_c_reduce.hpp
++++ b/mlprodict/testing/experimental_c_reduce.hpp
+@@ -93,7 +93,7 @@ py::array_t<NTYPE> custom_reducesum_rk(py::array_t<NTYPE, py::array::c_style | p
+ #endif
+ 
+     std::vector<int64_t> y_shape{ N };
+-    std::vector<ssize_t> strides;
++    std::vector<std::ptrdiff_t> strides;
+     shape2strides(y_shape, strides, (NTYPE)0);
+ 
+     return py::array_t<NTYPE>(
+-- 
+2.37.0 (Apple Git-136)
+
