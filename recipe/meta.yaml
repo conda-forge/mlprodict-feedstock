@@ -13,12 +13,13 @@ source:
     - 0001-Replace-ssize_t-with-std-ptrdiff_t.patch
 
 build:
-  number: 2
+  number: 3
   script: {{ PYTHON }} -m pip install . -vv
 
 requirements:
   build:
     - {{ compiler('c') }}
+    - {{ stdlib("c") }}
     - {{ compiler('cxx') }}
     - llvm-openmp  # [osx]
     - libgomp      # [linux]
@@ -41,7 +42,6 @@ requirements:
     - pybind11
     - python
     - scipy >=1.0.0
-    - {{ pin_compatible('numpy') }}
 
 test:
   imports:
