@@ -13,7 +13,7 @@ source:
     - 0001-Replace-ssize_t-with-std-ptrdiff_t.patch
 
 build:
-  number: 3
+  number: 4
   script: {{ PYTHON }} -m pip install . -vv
 
 requirements:
